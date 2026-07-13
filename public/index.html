@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shai &amp; Co. — Considered Goods</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Italiana&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-eyebrow">Shai &amp; Co. &mdash; heels &amp; leather goods</div>
+      <h1>Made to be <em>noticed</em>,<br>built to be worn.</h1>
+      <p class="lede">A tight collection of heels and leather bags, chosen for the walk, the room, and the years after both &mdash; not just the photo.</p>
+      <div class="hero-ctas">
+        <a href="#collection" class="btn btn-brass">Shop the collection</a>
+        <a href="#collection" class="btn btn-outline-light">See what's new</a>
+      </div>
+    </div>
+    <div class="hero-showcase" id="hero-showcase">
+      <div class="hero-veil-scrim"></div>
+      <img id="showcase-img-1" alt="">
+      <img id="showcase-img-2" alt="">
+      <div class="hero-showcase-caption" id="showcase-caption"></div>
+    </div>
+  </div>
+</section>
+
+<main class="container" id="collection">
+  <div class="section-head" style="margin-top:48px;">
+    <h2 id="result-heading">The full collection</h2>
+  </div>
+  <p class="page-subtitle" id="result-subtitle" style="margin-top:-14px;">Browse everything, or narrow it down below.</p>
+
+  <div class="chip-row" id="chip-row"></div>
+  <div class="product-grid" id="product-grid">
+    <div class="skel-card"><div class="skel skel-thumb"></div><div class="skel-body"><div class="skel skel-line" style="width:60%"></div><div class="skel skel-line" style="width:80%"></div><div class="skel skel-line" style="width:40%"></div></div></div>
+    <div class="skel-card"><div class="skel skel-thumb"></div><div class="skel-body"><div class="skel skel-line" style="width:60%"></div><div class="skel skel-line" style="width:80%"></div><div class="skel skel-line" style="width:40%"></div></div></div>
+    <div class="skel-card"><div class="skel skel-thumb"></div><div class="skel-body"><div class="skel skel-line" style="width:60%"></div><div class="skel skel-line" style="width:80%"></div><div class="skel skel-line" style="width:40%"></div></div></div>
+    <div class="skel-card"><div class="skel skel-thumb"></div><div class="skel-body"><div class="skel skel-line" style="width:60%"></div><div class="skel skel-line" style="width:80%"></div><div class="skel skel-line" style="width:40%"></div></div></div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="brand-word">Shai <span class="veil-dot">&amp;</span> Co.</div>
+  Siren    .    Spell    .    Souvenir
+</footer>
+
+<script src="/js/app.js"></script>
+<script>
+const FEATURED_CAPTION_FALLBACK = 'Look twice. It only gets better.';
+
+async function loadShowcase() {
+  try {
+    const { products } = await api('/products?featured=true');
+    if (products.length === 0) return;
+    let i = 0;
+    const img1 = document.getElementById('showcase-img-1');
+    const img2 = document.getElementById('showcase-img-2');
+    const caption = document.getElementById('showcase-caption');
+    const slots = [img1, img2];
+    let activeSlot = 0;
+
+    function show(idx) {
+      const p = products[idx % products.length];
+      const nextImg = slots[activeSlot];
+      nextImg.src = p.image;
+      nextImg.alt = p.name;
+      slots.forEach(s => s.classList.remove('active'));
+      nextImg.classList.add('active');
+      caption.textContent = p.reading || FEATURED_CAPTION_FALLBACK;
+      activeSlot = (activeSlot + 1) % 2;
+    }
+    show(0);
+    setInterval(() => { i++; show(i); }, 4200);
+  } catch {}
+}
+
+function renderStars(rating) {
+  return `<span class="stars">${starString(rating)}</span> <span>${(Number(rating) || 0).toFixed(1)}</span>`;
+}
+
+async function loadCategories(activeCategory) {
+  const { categories } = await api('/products/categories');
+  const chipRow = document.getElementById('chip-row');
+  const chips = ['All', ...categories];
+  chipRow.innerHTML = chips.map(c => {
+    const isActive = (c === 'All' && !activeCategory) || c === activeCategory;
+    return `<button class="chip ${isActive ? 'active' : ''}" onclick="filterCategory('${c === 'All' ? '' : c}')">${escapeHtml(c)}</button>`;
+  }).join('');
+}
+
+function filterCategory(cat) {
+  const params = new URLSearchParams(window.location.search);
+  if (cat) params.set('category', cat); else params.delete('category');
+  window.location.search = params.toString();
+}
+
+function renderProductCard(p, index, wishlistIds) {
+  const isLow = p.stock > 0 && p.stock <= 5;
+  const isNew = p.isNew === true;
+  const isWished = wishlistIds.includes(p.id);
+  return `
+    <div class="product-card" style="animation-delay:${Math.min(index * 0.06, 0.6)}s">
+      <a href="/product.html?id=${p.id}" style="display:contents;">
+        <div class="thumb">
+          <div class="veil-scrim"></div>
+          <img class="base" src="${p.image}" alt="${escapeHtml(p.name)}" loading="lazy">
+          <img class="hover-img" src="${p.hoverImage || p.image}" alt="" loading="lazy">
+          <div class="badge-row">
+            <span>${isNew ? '<span class="badge badge-new">New</span>' : ''}${isLow ? `<span class="badge badge-urgent">Only ${p.stock} left</span>` : ''}</span>
+          </div>
+        </div>
+      </a>
+      <button class="wishlist-btn ${isWished ? 'active' : ''}" onclick="event.stopPropagation(); toggleWishlist('${p.id}', this)" aria-label="Save to wishlist">${isWished ? '&#9829;' : '&#9825;'}</button>
+      <button class="quick-add-btn" onclick="addToCart('${p.id}', 1)" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Out of stock' : 'Quick add'}</button>
+      <a href="/product.html?id=${p.id}" class="body">
+        <span class="category-tag">${escapeHtml(p.category)}</span>
+        <span class="name">${escapeHtml(p.name)}</span>
+        <span class="reading">${escapeHtml(p.reading || '')}</span>
+        <span class="rating-row">${renderStars(p.rating)} <span style="opacity:0.6">(${p.reviewCount})</span></span>
+        <div class="price-row">
+          <span class="price">${formatMoney(p.price)}</span>
+          <span class="stock-note">${p.stock > 0 ? `${p.stock} in stock` : ''}</span>
+        </div>
+      </a>
+    </div>
+  `;
+}
+
+async function loadProducts() {
+  const params = new URLSearchParams(window.location.search);
+  const category = params.get('category') || '';
+  const search = params.get('search') || '';
+
+  await loadCategories(category);
+
+  const heading = document.getElementById('result-heading');
+  const subtitle = document.getElementById('result-subtitle');
+  if (search) { heading.textContent = `Results for "${search}"`; subtitle.textContent = 'Refine using the categories below.'; }
+  else if (category) { heading.textContent = category; subtitle.textContent = 'Browse everything in this category.'; }
+  else { heading.textContent = 'The full collection'; subtitle.textContent = 'Browse everything, or narrow it down below.'; }
+
+  const query = new URLSearchParams();
+  if (category) query.set('category', category);
+  if (search) query.set('search', search);
+
+  const grid = document.getElementById('product-grid');
+  try {
+    const [{ products }, wishlistIds] = await Promise.all([
+      api(`/products?${query.toString()}`),
+      getWishlistIds()
+    ]);
+    if (products.length === 0) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column: 1/-1"><div class="big-icon">&#9679;</div><p>No products match that search.</p></div>`;
+      return;
+    }
+    grid.innerHTML = products.map((p, i) => renderProductCard(p, i, wishlistIds)).join('');
+  } catch (err) {
+    grid.innerHTML = `<p>Could not load products: ${escapeHtml(err.message)}</p>`;
+  }
+}
+
+loadShowcase();
+loadProducts();
+</script>
+</body>
+</html>

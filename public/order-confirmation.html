@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shai &amp; Co. — Order Confirmed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Italiana&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+
+<main class="container" style="padding-top:40px;">
+  <div id="content"><p>Loading order...</p></div>
+</main>
+
+<footer class="site-footer">
+  <div class="brand-word">Shai <span class="veil-dot">&amp;</span> Co.</div>
+  A demo storefront built for the CodeAlpha Full Stack internship.
+</footer>
+
+<script src="/js/app.js"></script>
+<script>
+async function loadOrder() {
+  const user = await requireAuth();
+  if (!user) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const orderId = params.get('id');
+  const content = document.getElementById('content');
+
+  try {
+    const { order } = await api(`/orders/${orderId}`);
+    content.innerHTML = `
+      <div class="receipt-wrap">
+        <div class="receipt">
+          <h2>Shai &amp; Co.</h2>
+          <div class="sub">Order confirmed</div>
+          <div class="receipt-line"><span>Order</span><span>#${order.id.slice(0, 8)}</span></div>
+          <div class="receipt-line"><span>Date</span><span>${new Date(order.createdAt).toLocaleDateString()}</span></div>
+          <div class="receipt-line"><span>Ship to</span><span style="text-align:right; max-width:220px">${escapeHtml(order.shippingAddress)}</span></div>
+          <hr>
+          ${order.items.map(i => `<div class="receipt-line"><span>${escapeHtml(i.name)} &times;${i.quantity}</span><span>${formatMoney(i.subtotal)}</span></div>`).join('')}
+          <hr>
+          <div class="grand-total"><span>Total</span><span>${formatMoney(order.total)}</span></div>
+          <div class="stamp">Order placed</div>
+        </div>
+      </div>
+      <p style="text-align:center; margin-top:28px;">
+        <a href="/orders.html" class="btn btn-outline">View all orders</a>
+        <a href="/index.html" class="btn btn-primary">Continue shopping</a>
+      </p>
+    `;
+  } catch (err) {
+    content.innerHTML = `<p>${escapeHtml(err.message)}</p>`;
+  }
+}
+
+loadOrder();
+</script>
+</body>
+</html>

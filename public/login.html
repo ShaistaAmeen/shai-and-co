@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shai &amp; Co. — Log In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Italiana&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+
+<div class="auth-split">
+  <div class="auth-visual">
+    <img src="https://images.unsplash.com/photo-1611233299310-f6276ff55307?w=900" alt="">
+    <div class="auth-visual-text">
+      <div class="brand-word">Shai <span class="veil-dot">&amp;</span> Co.</div>
+      <p>Welcome back. Everything you left in your bag is still exactly where you left it.</p>
+    </div>
+  </div>
+  <div class="auth-form-side">
+    <div class="form-panel">
+      <h2>Log in</h2>
+      <div class="sub">Access your bag, wishlist, and orders.</div>
+      <div id="msg"></div>
+      <form onsubmit="handleLoginSubmit(event)">
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" required>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="submit-btn">Log in</button>
+      </form>
+      <p class="form-footer-link">Don't have an account? <a href="/register.html">Sign up</a></p>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+async function handleLoginSubmit(e) {
+  e.preventDefault();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const msg = document.getElementById('msg');
+  const btn = document.getElementById('submit-btn');
+  msg.innerHTML = '';
+  btn.disabled = true;
+  btn.textContent = 'Logging in...';
+  try {
+    await api('/auth/login', { method: 'POST', body: { email, password } });
+    const params = new URLSearchParams(window.location.search);
+    window.location.href = params.get('next') || '/index.html';
+  } catch (err) {
+    msg.innerHTML = `<div class="alert alert-error">${escapeHtml(err.message)}</div>`;
+    btn.disabled = false;
+    btn.textContent = 'Log in';
+  }
+}
+</script>
+</body>
+</html>

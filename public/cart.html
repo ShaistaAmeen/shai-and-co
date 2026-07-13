@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shai &amp; Co. — Your Bag</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Italiana&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+
+<main class="container" style="padding-top:40px;">
+  <h1 class="page-title">Your bag</h1>
+  <div id="content"><p>Loading...</p></div>
+</main>
+
+<footer class="site-footer">
+  <div class="brand-word">Shai <span class="veil-dot">&amp;</span> Co.</div>
+  A demo storefront built for the CodeAlpha Full Stack internship.
+</footer>
+
+<script src="/js/app.js"></script>
+<script>
+async function loadCartPage() {
+  const user = await requireAuth();
+  if (!user) return;
+
+  const content = document.getElementById('content');
+  try {
+    const cart = await getCart();
+    if (cart.items.length === 0) {
+      content.innerHTML = `
+        <div class="empty-state">
+          <div class="big-icon">&#9679;</div>
+          <p>Your bag is empty.</p>
+          <a href="/index.html" class="btn btn-primary">Browse the collection</a>
+        </div>`;
+      return;
+    }
+
+    content.innerHTML = `
+      <div class="cart-page-layout">
+        <div id="items">
+          ${cart.items.map((item, i) => `
+            <div class="cart-page-item" style="animation-delay:${i * 0.05}s" data-id="${item.productId}">
+              <img src="${item.image}" alt="${escapeHtml(item.name)}">
+              <div>
+                <div class="name">${escapeHtml(item.name)}</div>
+                <div class="unit-price">${formatMoney(item.price)} each</div>
+                <div class="mini-qty" style="margin-top:8px; display:inline-flex;">
+                  <button onclick="pageUpdateQty('${item.productId}', ${item.quantity - 1})">&minus;</button>
+                  <span>${item.quantity}</span>
+                  <button onclick="pageUpdateQty('${item.productId}', ${item.quantity + 1})">+</button>
+                </div>
+              </div>
+              <div class="right">
+                <div class="subtotal">${formatMoney(item.subtotal)}</div>
+                <button class="btn-ghost" onclick="pageRemove('${item.productId}')">Remove</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="summary-panel">
+          <div class="summary-row"><span>Subtotal</span><span>${formatMoney(cart.total)}</span></div>
+          <div class="summary-row"><span>Shipping</span><span>Free</span></div>
+          <div class="summary-total"><span>Total</span><span>${formatMoney(cart.total)}</span></div>
+          <a href="/checkout.html" class="btn btn-primary btn-block">Proceed to checkout</a>
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    content.innerHTML = `<p>${escapeHtml(err.message)}</p>`;
+  }
+}
+
+async function pageUpdateQty(productId, newQty) {
+  if (newQty < 1) return pageRemove(productId);
+  try {
+    await api(`/cart/${productId}`, { method: 'PUT', body: { quantity: newQty } });
+    loadCartPage();
+    updateCartBadge();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+async function pageRemove(productId) {
+  try {
+    await api(`/cart/${productId}`, { method: 'DELETE' });
+    toast('Removed from bag.');
+    loadCartPage();
+    updateCartBadge();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+loadCartPage();
+</script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shai &amp; Co. — Checkout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Italiana&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+
+<main class="container" style="padding-top:40px;">
+  <h1 class="page-title">Checkout</h1>
+  <div id="content"><p>Loading...</p></div>
+</main>
+
+<footer class="site-footer">
+  <div class="brand-word">Shai <span class="veil-dot">&amp;</span> Co.</div>
+  A demo storefront built for the CodeAlpha Full Stack internship.
+</footer>
+
+<script src="/js/app.js"></script>
+<script>
+async function loadCheckout() {
+  const user = await requireAuth();
+  if (!user) return;
+
+  const content = document.getElementById('content');
+  try {
+    const cart = await getCart();
+    if (cart.items.length === 0) {
+      content.innerHTML = `<div class="empty-state"><p>Your bag is empty.</p><a href="/index.html" class="btn btn-primary">Browse the collection</a></div>`;
+      return;
+    }
+
+    content.innerHTML = `
+      <div class="cart-page-layout">
+        <div class="form-panel" style="max-width:100%; margin:0;">
+          <div class="field">
+            <label for="address">Shipping address</label>
+            <textarea id="address" rows="4" placeholder="Street, city, postal code, country"></textarea>
+          </div>
+          <div id="msg"></div>
+          <button class="btn btn-primary btn-block" id="place-order-btn" onclick="placeOrder()">Place order &mdash; ${formatMoney(cart.total)}</button>
+        </div>
+        <div class="summary-panel">
+          <div style="font-weight:600; margin-bottom:14px; font-family:'Fraunces',serif; font-size:17px;">Order summary</div>
+          ${cart.items.map(i => `<div class="order-item-row"><span>${escapeHtml(i.name)} &times; ${i.quantity}</span><span>${formatMoney(i.subtotal)}</span></div>`).join('')}
+          <div class="summary-total"><span>Total</span><span>${formatMoney(cart.total)}</span></div>
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    content.innerHTML = `<p>${escapeHtml(err.message)}</p>`;
+  }
+}
+
+async function placeOrder() {
+  const address = document.getElementById('address').value.trim();
+  const msg = document.getElementById('msg');
+  const btn = document.getElementById('place-order-btn');
+  msg.innerHTML = '';
+  if (!address) {
+    msg.innerHTML = `<div class="alert alert-error">Please enter a shipping address.</div>`;
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Placing order...';
+  try {
+    const { order } = await api('/orders', { method: 'POST', body: { shippingAddress: address } });
+    updateCartBadge();
+    window.location.href = `/order-confirmation.html?id=${order.id}`;
+  } catch (err) {
+    msg.innerHTML = `<div class="alert alert-error">${escapeHtml(err.message)}</div>`;
+    btn.disabled = false;
+    btn.textContent = 'Place order';
+  }
+}
+
+loadCheckout();
+</script>
+</body>
+</html>

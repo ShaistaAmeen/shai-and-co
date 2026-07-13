@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shai &amp; Co. — Product</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Italiana&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+
+<main class="container" style="padding-top:40px;">
+  <div id="content"><p>Loading product...</p></div>
+
+  <div class="section-head" id="related-head" style="display:none;">
+    <h2>You might also like</h2>
+  </div>
+  <div class="product-grid" id="related-grid"></div>
+</main>
+
+<footer class="site-footer">
+  <div class="brand-word">Shai <span class="veil-dot">&amp;</span> Co.</div>
+  A demo storefront built for the CodeAlpha Full Stack internship.
+</footer>
+
+<script src="/js/app.js"></script>
+<script>
+const params = new URLSearchParams(window.location.search);
+const productId = params.get('id');
+let currentProduct = null;
+
+function renderStars(rating) {
+  return `<span class="stars">${starString(rating)}</span> <span>${(Number(rating) || 0).toFixed(1)} &middot; ${'reviews'}</span>`;
+}
+
+async function loadProduct() {
+  const content = document.getElementById('content');
+  if (!productId) {
+    content.innerHTML = `<p>No product specified.</p>`;
+    return;
+  }
+  try {
+    const [{ product }, wishlistIds] = await Promise.all([
+      api(`/products/${productId}`),
+      getWishlistIds()
+    ]);
+    currentProduct = product;
+    const isWished = wishlistIds.includes(product.id);
+    const isLow = product.stock > 0 && product.stock <= 5;
+
+    content.innerHTML = `
+      <div class="detail-grid">
+        <div class="detail-image-wrap">
+          <div class="veil-scrim"></div>
+          <img src="${product.image}" alt="${escapeHtml(product.name)}">
+        </div>
+        <div>
+          <div class="detail-category">${escapeHtml(product.category)}</div>
+          <h1 class="detail-name">${escapeHtml(product.name)}</h1>
+          <p class="detail-reading">${escapeHtml(product.reading || '')}</p>
+          <span class="rating-row">${renderStars(product.rating)} <span style="opacity:0.6">(${product.reviewCount} reviews)</span></span>
+          <div class="detail-price" style="margin-top:14px;">${formatMoney(product.price)}</div>
+          <p class="detail-desc">${escapeHtml(product.description)}</p>
+          <p class="stock-note" id="stock-note">${product.stock === 0 ? 'Out of stock' : isLow ? `Only ${product.stock} left in stock` : `${product.stock} in stock`}</p>
+          <div class="qty-row">
+            <div class="qty-control">
+              <button type="button" onclick="changeQty(-1)">&minus;</button>
+              <input type="text" id="qty" value="1" readonly>
+              <button type="button" onclick="changeQty(1)">+</button>
+            </div>
+            <button class="btn btn-primary" id="add-btn" onclick="addToCartFromDetail()" ${product.stock === 0 ? 'disabled' : ''}>
+              ${product.stock === 0 ? 'Out of stock' : 'Add to bag'}
+            </button>
+            <button class="wishlist-btn ${isWished ? 'active' : ''}" style="position:static;" onclick="toggleWishlist('${product.id}', this)" aria-label="Save to wishlist">${isWished ? '&#9829;' : '&#9825;'}</button>
+          </div>
+          <div class="detail-meta-row">
+            <span>Free shipping over $50</span>
+            <span>30-day returns</span>
+            <span>Secure checkout</span>
+          </div>
+        </div>
+      </div>
+    `;
+    loadRelated(product.category, product.id);
+  } catch (err) {
+    content.innerHTML = `<p>${escapeHtml(err.message)}</p>`;
+  }
+}
+
+function changeQty(delta) {
+  const input = document.getElementById('qty');
+  let val = parseInt(input.value, 10) + delta;
+  if (val < 1) val = 1;
+  if (currentProduct && val > currentProduct.stock) val = currentProduct.stock;
+  input.value = val;
+}
+
+async function addToCartFromDetail() {
+  const qty = parseInt(document.getElementById('qty').value, 10);
+  await addToCart(productId, qty);
+}
+
+async function loadRelated(category, excludeId) {
+  try {
+    const { products } = await api(`/products?category=${encodeURIComponent(category)}`);
+    const related = products.filter(p => p.id !== excludeId).slice(0, 4);
+    if (related.length === 0) return;
+    document.getElementById('related-head').style.display = 'flex';
+    const wishlistIds = await getWishlistIds();
+    document.getElementById('related-grid').innerHTML = related.map((p, i) => `
+      <div class="product-card" style="animation-delay:${i * 0.06}s">
+        <a href="/product.html?id=${p.id}" style="display:contents;">
+          <div class="thumb">
+            <div class="veil-scrim"></div>
+            <img class="base" src="${p.image}" alt="${escapeHtml(p.name)}" loading="lazy">
+            <img class="hover-img" src="${p.hoverImage || p.image}" alt="" loading="lazy">
+          </div>
+        </a>
+        <button class="wishlist-btn ${wishlistIds.includes(p.id) ? 'active' : ''}" onclick="event.stopPropagation(); toggleWishlist('${p.id}', this)" aria-label="Save to wishlist">${wishlistIds.includes(p.id) ? '&#9829;' : '&#9825;'}</button>
+        <button class="quick-add-btn" onclick="addToCart('${p.id}', 1)" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Out of stock' : 'Quick add'}</button>
+        <a href="/product.html?id=${p.id}" class="body">
+          <span class="category-tag">${escapeHtml(p.category)}</span>
+          <span class="name">${escapeHtml(p.name)}</span>
+          <div class="price-row"><span class="price">${formatMoney(p.price)}</span></div>
+        </a>
+      </div>
+    `).join('');
+  } catch {}
+}
+
+loadProduct();
+</script>
+</body>
+</html>
