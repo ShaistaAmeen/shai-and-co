@@ -4,12 +4,16 @@ A visually distinctive full-stack e-commerce demo built for the CodeAlpha Full S
 
 **Stack:** Express.js (Node.js) + vanilla HTML/CSS/JS. Data is stored in a JSON file via `lowdb` (swap for MongoDB/PostgreSQL easily — see "Swapping the database" below).
 
+## About the collection
+
+Shai & Co. is styled as a boutique retailer of **heels and luxury handbags** rather than a generic mixed-category storefront — a deliberate choice to make the product copy, imagery, and brand voice cohere around one point of view instead of reading as a tutorial catalog. The tagline, **"Siren. Spell. Souvenir."**, was chosen the same way: each word plays on the idea of being drawn in, captivated, and left with something to remember it by — down to "souvenir" literally meaning "to remember" at its French root.
+
 ## Design
 
 Built as an editorial/boutique storefront rather than a generic product-grid template:
 
 - **Palette:** deep aubergine-ink, warm bone/paper tones, antique brass and garnet accents
-- **Type:** Fraunces (display serif) + Space Grotesk (UI) + IBM Plex Mono (prices/labels)
+- **Type:** Italiana (brand wordmark & display) + Cormorant Garamond (headings, product names) + Manrope (UI/body) + JetBrains Mono (prices/labels)
 - **Signature interaction:** a "veil-lift" reveal — product images unveil behind a satin scrim on hover/load, echoed in the hero showcase and the product detail image
 - **Motion:** staggered card entrance animations, a slide-out cart drawer, toast notifications, an animated "printing" receipt on order confirmation with a stamped seal
 
@@ -25,7 +29,7 @@ Built as an editorial/boutique storefront rather than a generic product-grid tem
 
 ## Project structure
 
-```
+\```
 ecommerce-app/
 ├── server.js
 ├── config/db.js            # lowdb setup + seed data (12 products with ratings, hover images, taglines)
@@ -48,41 +52,206 @@ ecommerce-app/
     ├── login.html / register.html   # split-screen editorial layout
     ├── css/style.css          # full design system
     └── js/app.js              # API wrapper, toasts, cart drawer, header, wishlist
-```
+\```
 
 ## Getting started
 
-```bash
+\```bash
 npm install
 cp .env.example .env      # optional: edit JWT_SECRET
 npm start
-```
+\```
 
 Then open **http://localhost:3000**.
 
-The database seeds itself with 12 sample products on first run. Delete `data/db.json` any time to reset all data.
+The database seeds itself with 12 sample products (heels & bags) on first run. Delete `data/db.json` any time to reset all data.
 
 ## API reference
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| POST | `/api/auth/register` | – | Create account `{ name, email, password }` |
-| POST | `/api/auth/login` | – | Log in `{ email, password }` |
-| POST | `/api/auth/logout` | – | Clear session cookie |
-| GET | `/api/auth/me` | – | Current logged-in user (or `null`) |
-| GET | `/api/products` | – | List products, `?category=` `?search=` `?featured=true` filters |
-| GET | `/api/products/categories` | – | Distinct category list |
-| GET | `/api/products/:id` | – | Single product detail |
-| GET | `/api/cart` | ✅ | Current user's cart with totals |
-| POST | `/api/cart` | ✅ | Add item `{ productId, quantity }` |
-| PUT | `/api/cart/:productId` | ✅ | Update quantity `{ quantity }` |
-| DELETE | `/api/cart/:productId` | ✅ | Remove one item |
-| DELETE | `/api/cart` | ✅ | Clear cart |
-| POST | `/api/orders` | ✅ | Checkout `{ shippingAddress }` — validates stock, deducts it, clears cart |
-| GET | `/api/orders` | ✅ | Order history for current user |
-| GET | `/api/orders/:id` | ✅ | Single order detail |
-| GET | `/api/wishlist` | ✅ | Saved products |
-| POST | `/api/wishlist/:productId` | ✅ | Toggle a product on/off the wishlist |
+
+|
+ Method 
+|
+ Endpoint 
+|
+ Auth 
+|
+ Description 
+|
+|
+---
+|
+---
+|
+---
+|
+---
+|
+|
+ POST 
+|
+`/api/auth/register`
+|
+ – 
+|
+ Create account 
+`{ name, email, password }`
+|
+|
+ POST 
+|
+`/api/auth/login`
+|
+ – 
+|
+ Log in 
+`{ email, password }`
+|
+|
+ POST 
+|
+`/api/auth/logout`
+|
+ – 
+|
+ Clear session cookie 
+|
+|
+ GET 
+|
+`/api/auth/me`
+|
+ – 
+|
+ Current logged-in user (or 
+`null`
+) 
+|
+|
+ GET 
+|
+`/api/products`
+|
+ – 
+|
+ List products, 
+`?category=`
+`?search=`
+`?featured=true`
+ filters 
+|
+|
+ GET 
+|
+`/api/products/categories`
+|
+ – 
+|
+ Distinct category list 
+|
+|
+ GET 
+|
+`/api/products/:id`
+|
+ – 
+|
+ Single product detail 
+|
+|
+ GET 
+|
+`/api/cart`
+|
+ ✅ 
+|
+ Current user's cart with totals 
+|
+|
+ POST 
+|
+`/api/cart`
+|
+ ✅ 
+|
+ Add item 
+`{ productId, quantity }`
+|
+|
+ PUT 
+|
+`/api/cart/:productId`
+|
+ ✅ 
+|
+ Update quantity 
+`{ quantity }`
+|
+|
+ DELETE 
+|
+`/api/cart/:productId`
+|
+ ✅ 
+|
+ Remove one item 
+|
+|
+ DELETE 
+|
+`/api/cart`
+|
+ ✅ 
+|
+ Clear cart 
+|
+|
+ POST 
+|
+`/api/orders`
+|
+ ✅ 
+|
+ Checkout 
+`{ shippingAddress }`
+ — validates stock, deducts it, clears cart 
+|
+|
+ GET 
+|
+`/api/orders`
+|
+ ✅ 
+|
+ Order history for current user 
+|
+|
+ GET 
+|
+`/api/orders/:id`
+|
+ ✅ 
+|
+ Single order detail 
+|
+|
+ GET 
+|
+`/api/wishlist`
+|
+ ✅ 
+|
+ Saved products 
+|
+|
+ POST 
+|
+`/api/wishlist/:productId`
+|
+ ✅ 
+|
+ Toggle a product on/off the wishlist 
+|
 
 Auth is enforced via a JWT stored in an httpOnly cookie (`token`), set automatically on register/login. Endpoints marked ✅ return `401` if not logged in.
 
