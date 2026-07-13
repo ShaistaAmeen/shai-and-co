@@ -29,7 +29,7 @@ Built as an editorial/boutique storefront rather than a generic product-grid tem
 
 ## Project structure
 
-\```
+```
 ecommerce-app/
 ├── server.js
 ├── config/db.js            # lowdb setup + seed data (12 products with ratings, hover images, taglines)
@@ -52,15 +52,15 @@ ecommerce-app/
     ├── login.html / register.html   # split-screen editorial layout
     ├── css/style.css          # full design system
     └── js/app.js              # API wrapper, toasts, cart drawer, header, wishlist
-\```
+```
 
 ## Getting started
 
-\```bash
+```bash
 npm install
 cp .env.example .env      # optional: edit JWT_SECRET
 npm start
-\```
+```
 
 Then open **http://localhost:3000**.
 
@@ -68,190 +68,25 @@ The database seeds itself with 12 sample products (heels & bags) on first run. D
 
 ## API reference
 
-
-|
- Method 
-|
- Endpoint 
-|
- Auth 
-|
- Description 
-|
-|
----
-|
----
-|
----
-|
----
-|
-|
- POST 
-|
-`/api/auth/register`
-|
- – 
-|
- Create account 
-`{ name, email, password }`
-|
-|
- POST 
-|
-`/api/auth/login`
-|
- – 
-|
- Log in 
-`{ email, password }`
-|
-|
- POST 
-|
-`/api/auth/logout`
-|
- – 
-|
- Clear session cookie 
-|
-|
- GET 
-|
-`/api/auth/me`
-|
- – 
-|
- Current logged-in user (or 
-`null`
-) 
-|
-|
- GET 
-|
-`/api/products`
-|
- – 
-|
- List products, 
-`?category=`
-`?search=`
-`?featured=true`
- filters 
-|
-|
- GET 
-|
-`/api/products/categories`
-|
- – 
-|
- Distinct category list 
-|
-|
- GET 
-|
-`/api/products/:id`
-|
- – 
-|
- Single product detail 
-|
-|
- GET 
-|
-`/api/cart`
-|
- ✅ 
-|
- Current user's cart with totals 
-|
-|
- POST 
-|
-`/api/cart`
-|
- ✅ 
-|
- Add item 
-`{ productId, quantity }`
-|
-|
- PUT 
-|
-`/api/cart/:productId`
-|
- ✅ 
-|
- Update quantity 
-`{ quantity }`
-|
-|
- DELETE 
-|
-`/api/cart/:productId`
-|
- ✅ 
-|
- Remove one item 
-|
-|
- DELETE 
-|
-`/api/cart`
-|
- ✅ 
-|
- Clear cart 
-|
-|
- POST 
-|
-`/api/orders`
-|
- ✅ 
-|
- Checkout 
-`{ shippingAddress }`
- — validates stock, deducts it, clears cart 
-|
-|
- GET 
-|
-`/api/orders`
-|
- ✅ 
-|
- Order history for current user 
-|
-|
- GET 
-|
-`/api/orders/:id`
-|
- ✅ 
-|
- Single order detail 
-|
-|
- GET 
-|
-`/api/wishlist`
-|
- ✅ 
-|
- Saved products 
-|
-|
- POST 
-|
-`/api/wishlist/:productId`
-|
- ✅ 
-|
- Toggle a product on/off the wishlist 
-|
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| POST | `/api/auth/register` | – | Create account `{ name, email, password }` |
+| POST | `/api/auth/login` | – | Log in `{ email, password }` |
+| POST | `/api/auth/logout` | – | Clear session cookie |
+| GET | `/api/auth/me` | – | Current logged-in user (or `null`) |
+| GET | `/api/products` | – | List products, `?category=` `?search=` `?featured=true` filters |
+| GET | `/api/products/categories` | – | Distinct category list |
+| GET | `/api/products/:id` | – | Single product detail |
+| GET | `/api/cart` | ✅ | Current user's cart with totals |
+| POST | `/api/cart` | ✅ | Add item `{ productId, quantity }` |
+| PUT | `/api/cart/:productId` | ✅ | Update quantity `{ quantity }` |
+| DELETE | `/api/cart/:productId` | ✅ | Remove one item |
+| DELETE | `/api/cart` | ✅ | Clear cart |
+| POST | `/api/orders` | ✅ | Checkout `{ shippingAddress }` — validates stock, deducts it, clears cart |
+| GET | `/api/orders` | ✅ | Order history for current user |
+| GET | `/api/orders/:id` | ✅ | Single order detail |
+| GET | `/api/wishlist` | ✅ | Saved products |
+| POST | `/api/wishlist/:productId` | ✅ | Toggle a product on/off the wishlist |
 
 Auth is enforced via a JWT stored in an httpOnly cookie (`token`), set automatically on register/login. Endpoints marked ✅ return `401` if not logged in.
 
